@@ -1,133 +1,55 @@
 'use client'
 
-import axios, { AxiosError } from "axios";
-import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Home() {
-    const [data, setData] = useState("tdirareoa");
+    const router = useRouter()
     const [inputValue, setInputValue] = useState("")
+    const [errorMessage, setErrorMessage] = useState("")
 
-    const submitValue = async () => {
-        try {
-            const response = await axios.post('/api/defineWord', { word: inputValue, language: 'English', otherLanguage: 'English' });
-            console.log({ response })
-        } catch (err) {
-            const error = err as AxiosError
-            console.log({ error })
+    const submitValue = () => {
+        console.log("Clicked!!!!!!!")
+        if (inputValue.length > 6) {
+            router.push(`/gameroom?id=${inputValue}`)
+        } else {
+            setErrorMessage("ID must be at least 7 characters long.")
         }
     }
 
-    useEffect(() => {
-        // fetch("/api/generateWords", {
-        //     method: 'POST',
-        //     body: JSON.stringify({ language: 'English' })
-        // })
-        //     .then((res) => res.json())
-        //     .then((response) => setData(response.result));
-    }, []);
-
     return (
-        <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-            {data ? data : 'Loading....'}
-            <input className="border" type="text" onChange={(event) => {
-                setInputValue(event.target.value)
-            }} />
-            <button 
-                className="cursor-pointer border px-10 py-2 rounded-[5]"
-                onClick={submitValue}
-            >Submit</button>
+        <div className="w-screen h-screen font-[family-name:var(--font-geist-sans)] bg-[url('https://images.unsplash.com/photo-1666891827442-136490fc4140?q=80&w=1968&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')] bg-cover bg-no-repeat bg-center bg-fixed flex justify-center items-center flex-col">
+            <div className="py-2 px-4 text-center rounded-sm bg-[#000] text-sm text-white mb-15">
+                WORD S T U D I O.
+            </div>
+            
+            <h1 className="text-5xl font-bold pb-2">Ready to Play?</h1>
+            <h1 className="text-5xl font-bold">Create Your Unique ID to Jump In!</h1>
+
+            <div className="w-100 mt-15 py-1 px-1 pl-2 rounded-xl bg-white shadow-md">
+                <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => {
+                        if (errorMessage.length > 0) {
+                            setErrorMessage("")
+                        }
+                        setInputValue(e.target.value)
+                    }}
+                    className="p-2 outline-none w-[75%] placeholder:text-gray-500 placeholder:italic"
+                    placeholder="Enter your unique ID"
+                />
+                <button
+                    onClick={submitValue}
+                    className="w-[25%] bg-[#b7094c] text-white py-[9px] rounded-xl outline-none"
+                >
+                    Submit
+                </button>
+            </div>
+
+            {errorMessage && (
+                <div className="mt-2 text-red-500 text-sm">{errorMessage}</div>
+            )}
         </div>
     );
 }
-
-/**
- *  <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
- *  <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-            className="dark:invert"
-            src="/next.svg"
-            alt="Next.js logo"
-            width={180}
-            height={38}
-            priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-            <li className="mb-2 tracking-[-.01em]">
-                Get started by editing{" "}
-                <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-                src/app/page.tsx
-                </code>
-                .
-            </li>
-            <li className="tracking-[-.01em]">
-                Save and see your changes instantly.
-            </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-        <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            <Image
-            className="dark:invert"
-            src="/vercel.svg"
-            alt="Vercel logomark"
-            width={20}
-            height={20}
-            />
-            Deploy now
-        </a>
-        <a className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            Read our docs
-        </a>
-        </div>
-    </main>
-    <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a className="flex items-center gap-2 hover:underline hover:underline-offset-4" href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app" target="_blank" rel="noopener noreferrer">
-            <Image
-                aria-hidden
-                src="/file.svg"
-                alt="File icon"
-                width={16}
-                height={16}
-            />
-            Learn
-        </a>
-        <a className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-        href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-        target="_blank"
-        rel="noopener noreferrer"
-        >
-        <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-        />
-        Examples
-        </a>
-        <a
-        className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-        href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-        target="_blank"
-        rel="noopener noreferrer"
-        >
-        <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-        />
-        Go to nextjs.org →
-        </a>
-    </footer>
- */
