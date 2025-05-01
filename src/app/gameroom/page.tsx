@@ -2,11 +2,104 @@
 
 import { AlignJustify, User, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
+import Axios from "../services/Axios";
 
 export default function GameRoom() {
     const [startGame, setStartGame] = useState(false);
-    const words = "RGHITWZQX";
+    const [randomLetters, setRandomLetters] = useState(["A", "A", "A", "A", "A", "A", "A", "A", "A"]);
+    const [inputError, setInputError] = useState("")
+    const [inputValue, setInputValue] = useState("")
+    const [timer, setTimer] = useState(20)
+    const [isTimer, setIsTimer] = useState(false)
+    const [timeInterval, setTimeInterval] = useState<any>()
+
+    const getRandomWords = async () => {
+        try {
+            setStartGame(true);
+            const response: { data: { result: string[] }} = await Axios.post("/generateWords", {
+                body: JSON.stringify({
+                    language: "english",
+                }),
+            })
+
+            setRandomLetters(response.data.result);
+            startTimer()
+        } catch (err) {
+            console.log(err);
+        }
+    }
+
+    const startTimer = () => setTimeInterval(
+        setInterval(() => {
+            if (isTimer === false) {
+                setIsTimer(true)
+            }
+            setTimer((prevTimer) => prevTimer - 1)
+        }, 1000)
+    );
+
+    const checkMoreLetters = (value: string): boolean => {
+        const lastValue = value[value.length - 1]
+        const randomList = randomLetters.filter(eachLetter => eachLetter === lastValue)
+        const valueList = value.split("").filter(eachLetter => eachLetter === lastValue)
+
+        if (valueList.length > randomList.length) {
+            return true
+        }
+    
+        return false
+    }
+
+    const handleInput = (inputEvent: ChangeEvent<HTMLInputElement>) => {
+        const value = inputEvent.target.value
+        const lastValue = value[value.length - 1]
+
+        if (lastValue === undefined) {
+            return ""
+        }
+        
+        if (value.length > randomLetters.length) {
+            setInputError(`The maximum amount of letters is "9"`)
+            inputEvent.target.value = value.slice(0, value.length - 1)
+        } else if (!randomLetters.includes(lastValue)) {
+            setInputError(`"${lastValue}" dosen't exists in the letters above`)
+            inputEvent.target.value = value.slice(0, value.length - 1)
+        } else if (checkMoreLetters(value)) {
+            setInputError(`You have reached the maximum amount of "${lastValue}" in the letters above`)
+            inputEvent.target.value = value.slice(0, value.length - 1)
+        } else {
+            setInputError("")
+            setInputValue(inputEvent.target.value)
+        }
+    }
+
+    const submitValue = async () => {
+        try {
+            setTimer(45)
+            setIsTimer(false)
+            clearInterval(timeInterval)
+            
+            const { data } = await Axios.post("/checkWord", {
+                body: JSON.stringify({
+                    word: inputValue,
+                    language: "English"
+                })
+            })
+
+            console.log(data.body)
+        } catch (err) {
+
+        }
+    }
+
+    useEffect(() => {
+        if (timer === 0) {
+            setTimer(45)
+            setIsTimer(false)
+            clearInterval(timeInterval)
+        }
+    }, [timer])
 
     return (
         <div className="relative w-screen h-screen overflow-hidden bg-[#f1f1f1]">
@@ -53,7 +146,7 @@ export default function GameRoom() {
                                 </div>
                                 <button 
                                     className="bg-blue-500 text-white py-3 px-5 cursor-pointer rounded-xl"
-                                    onClick={() => setStartGame(true)}
+                                    onClick={getRandomWords}
                                 >
                                     Start Game
                                 </button>
@@ -90,27 +183,39 @@ export default function GameRoom() {
                     </div>
 
                     <div className="flex justify-between items-center border-t-[1px] border-b-[1px] border-[#a1a1a1]">
-                        {words.split("").map((letter, index) => 
+                        {randomLetters.map((letter, index) => 
                             <div className="flex-1 py-3 border-[#a1a1a1] border-r-[1px]" key={index}>
-                                <h1 className="text-[14vw] text-center leading-none">{letter}</h1>
+                                <h1 className="text-[14vw] text-center leading-none uppercase">{letter}</h1>
                             </div>
                         )}
                     </div>
                 
-                    <div className="border-b-[1px] text-center py-4 border-[#a1a1a1]">
-                        <span className="text-3xl">60s</span>
+                    <div className="relative border-b-[1px] text-center h-[70px] border-[#a1a1a1]">
+                        <span className={`
+                            absolute z-2 top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] 
+                            text-3xl ${timer <= 9 ? "text-white" : "text-black"}
+                        `}>{timer}s</span>
+                        <div className={`
+                            absolute left-0 top-0 h-[100%] w-[0%] bg-[#000] 
+                            ${isTimer ? "animate-[counterWidth_20s_ease-in-out_1]" : ""}
+                        `}></div>
                     </div>
 
                     {/* footer */}
                     <div className="absolute w-[100%] left-0 bottom-0">
+                        <div className="text-center mb-[30px]">
+                            <span className="text-red-500 text-2xl">{inputError}</span>
+                        </div>
+
                         <div className="w-[60vw] mx-auto py-1 px-1 pl-2 min-w-sm mb-1">
                             <input
                                 type="text"
                                 className="p-2 outline-none w-[85%] placeholder:text-gray-400 placeholder:italic text-[30px] text-center"
                                 placeholder="Write down your word here!!"
+                                onChange={handleInput}
                             />
                             <button
-                                // onClick={submitValue}
+                                onClick={() => inputValue.length > 3 && submitValue()}
                                 className="w-[15%] bg-[#b7094c] py-3 text-white rounded-xl outline-none text-[18px]"
                             >
                                 Submit

@@ -1,4 +1,4 @@
-export async function POST() {
+export async function POST(req: Request) {    
     const numVowels = Math.floor(Math.random() * 3) + 3; // 3, 4, or 5
     const numConsonants = 9 - numVowels;
     const result: string[] = [];

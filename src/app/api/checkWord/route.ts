@@ -54,9 +54,10 @@ async function checkWord(word: string, language: string) {
 
 export async function POST(req: Request) {
     try {
-        const body: { word: string, language: string} = await req.json()
-        const response = await checkWord(body.word, body.language)
+        const { body } = await req.json()
+        const { word, language } = JSON.parse(body)
 
+        const response = await checkWord(word, language)
         return Response.json({ body: JSON.parse(response) })
     } catch (error) {
         return Response.json({ error: (error as AxiosError).message }, { status: 500 });
